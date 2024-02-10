@@ -16,7 +16,7 @@ def get_posts(db:Session= Depends(get_db), current_user: int= Depends(auth2.get_
     #posts = cursor.fetchall()
     #print(limit)
     all_posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter= True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     #print(results)
     return results
 
@@ -37,11 +37,11 @@ def get_post(id : int, db: Session= Depends(get_db), current_user:int=Depends(au
     #cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))
     #get_post = cursor.fetchone()
     get_post = db.query(models.Post).filter(models.Post.id == id).first()
-    getting_one = db.query(models.Post, func.count(models.Vote.post_id).label('votes'), isouter= True).join(models.Vote, models.Vote.post_id == models.Post.id).group_by(models.Post.id).filter(models.Post.id == id).first()
+    getting_one = db.query(models.Post, func.count(models.Vote.post_id).label('votes')).join(models.Vote, models.Vote.post_id == models.Post.id).group_by(models.Post.id).filter(models.Post.id == id).first()
     if not getting_one:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = f"post with id of: {id} was not found")
     
-    return  getting_one 
+    return getting_one  
 
 @router.delete("/posts/{id}", status_code = status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session= Depends(get_db), current_user: int= Depends(auth2.get_current_user)):
